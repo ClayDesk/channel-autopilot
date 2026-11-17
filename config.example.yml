@@ -17,6 +17,7 @@ limits:
   facebook.post: 1
   linkedin.post: 1
   linkedin.video: 1
+  tiktok.video: 1
 
 youtube:
   client_secret: secrets/youtube-oauth-client.json
@@ -37,6 +38,13 @@ facebook:
 # linkedin:
 #   author: urn:li:organization:12345   # or urn:li:person:<id>
 #   token: "${LINKEDIN_TOKEN}"
+
+# Optional: TikTok. Run `autopilot tiktok-auth` once, then add tiktok.video to an item's
+# actions: (or to default_actions:) to use it.
+# tiktok:
+#   client_key: "${TIKTOK_CLIENT_KEY}"
+#   client_secret: "${TIKTOK_CLIENT_SECRET}"
+#   privacy: SELF_ONLY         # until TikTok audits your app; then PUBLIC_TO_EVERYONE
 
 # Instagram and Facebook fetch media from a public https URL
 media:

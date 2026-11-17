@@ -21,6 +21,7 @@ DEFAULT_LIMITS = {
     "facebook.post": 1,
     "linkedin.post": 1,
     "linkedin.video": 1,
+    "tiktok.video": 1,
 }
 
 DEFAULT_ACTIONS = {

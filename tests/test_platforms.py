@@ -1,8 +1,10 @@
+import json
+
 import pytest
 
 from autopilot import http
 from autopilot.errors import AutopilotError, ConfigError, QuotaReached
-from autopilot.platforms import facebook, instagram, linkedin
+from autopilot.platforms import facebook, instagram, linkedin, tiktok
 from autopilot.queue import Item
 from autopilot.schedule import Ctx
 from pathlib import Path
@@ -123,3 +125,61 @@ def test_linkedin_rate_limit_is_not_a_failure(cfg, monkeypatch):
     monkeypatch.setattr(http, "call", lim)
     with pytest.raises(QuotaReached):
         linkedin.post(Ctx(cfg), item())
+
+
+def tt(data, code="ok"):
+    """A TikTok API answer: (body, headers) as http.call returns it."""
+    return {"data": data, "error": {"code": code}}, {}
+
+
+@pytest.fixture
+def tiktok_token(cfg):
+    p = cfg.path("tiktok.token", "secrets/tiktok-token.json")
+    p.parent.mkdir(parents=True)
+    p.write_text(json.dumps({"access_token": "A1", "refresh_token": "R1", "expires_at": 4102444800}))
+    return p
+
+
+def test_tiktok_video_flow(cfg, monkeypatch, tmp_path, tiktok_token):
+    def not_json(_): raise json.JSONDecodeError("Expecting value", "OK", 0)
+    tiktok_token.write_text(json.dumps({"access_token": "A1", "refresh_token": "R1", "expires_at": 0}))
+    monkeypatch.setattr(tiktok, "CHUNK", 4)
+    (tmp_path / "v.mp4").write_bytes(b"0123456789")
+    f = Fake([("oauth/token", {"access_token": "A2", "refresh_token": "R2", "expires_in": 7200}),
+              ("creator_info", tt({"creator_username": "me", "privacy_level_options": ["PUBLIC_TO_EVERYONE", "SELF_ONLY"]})),
+              ("video/init", tt({"publish_id": "P1", "upload_url": "https://up.example/u"})), ("up.example", not_json),
+              ("status/fetch", tt({"status": "PUBLISH_COMPLETE", "publicaly_available_post_id": [7]}))])
+    monkeypatch.setattr(http, "request", f)
+    monkeypatch.setattr(http, "call", f)
+    r = tiktok.video(Ctx(cfg), item(files={"video": tmp_path / "v.mp4"}))
+    assert r.url == "https://www.tiktok.com/@me/video/7" and r.remote_id == "7"
+    assert f.calls[0][2]["refresh_token"] == "R1" and json.loads(tiktok_token.read_text())["refresh_token"] == "R2"
+    assert f.calls[2][2] == {"post_info": {"title": "Cap", "privacy_level": "PUBLIC_TO_EVERYONE"}, "source_info": {
+        "source": "FILE_UPLOAD", "video_size": 10, "chunk_size": 4, "total_chunk_count": 2}}
+    assert [c[2] for c in f.calls if c[0] == "PUT"] == [b"0123", b"456789"]
+
+
+def test_tiktok_caption_fits_the_utf16_limit():
+    assert tiktok._title("a" * 3000) == "a" * 2200 and tiktok._title("\U0001F600" * 2000) == "\U0001F600" * 1100
+
+
+def test_tiktok_daily_cap_is_not_a_failure(cfg, monkeypatch, tiktok_token):
+    monkeypatch.setattr(http, "call", Fake([("creator_info", tt({}, "spam_risk_too_many_posts"))]))
+    with pytest.raises(QuotaReached):
+        tiktok.video(Ctx(cfg), item())
+
+
+def test_tiktok_privacy_must_be_allowed(cfg, monkeypatch, tiktok_token):
+    monkeypatch.setattr(http, "call", Fake([("creator_info", tt({"privacy_level_options": ["SELF_ONLY"]}))]))
+    with pytest.raises(ConfigError, match="SELF_ONLY"):
+        tiktok.video(Ctx(cfg), item())
+
+
+def test_tiktok_failed_post_raises(cfg, monkeypatch, tmp_path, tiktok_token):
+    (tmp_path / "v.mp4").write_bytes(b"x")
+    monkeypatch.setattr(http, "call", Fake([
+        ("creator_info", tt({"privacy_level_options": ["PUBLIC_TO_EVERYONE"]})),
+        ("video/init", tt({"publish_id": "P1", "upload_url": "https://up.example/u"})), ("up.example", ({}, {})),
+        ("status/fetch", tt({"status": "FAILED", "fail_reason": "duration_check_failed"}))]))
+    with pytest.raises(AutopilotError, match="duration_check_failed"):
+        tiktok.video(Ctx(cfg), item(files={"video": tmp_path / "v.mp4"}))

@@ -8,7 +8,7 @@ item.yml:
   kind: short | video | image | post
   title: ...
   description: ...           # YouTube description / default caption
-  caption: ...               # Instagram, Facebook and LinkedIn caption (falls back to description)
+  caption: ...               # Instagram, Facebook, LinkedIn and TikTok caption (falls back to description)
   tags: [a, b]
   link: https://...          # for kind: post (a link card)
   priority: 10               # lower runs first; default 100
@@ -30,11 +30,12 @@ from .errors import ConfigError
 
 KINDS = ("short", "video", "image", "post")
 KNOWN_ACTIONS = ("youtube.short", "youtube.video", "instagram.reel", "instagram.story", "instagram.image",
-                 "facebook.reel", "facebook.story", "facebook.image", "facebook.post", "linkedin.post", "linkedin.video")
+                 "facebook.reel", "facebook.story", "facebook.image", "facebook.post", "linkedin.post", "linkedin.video",
+                 "tiktok.video")
 NEEDS = {  # which file each action needs
     "youtube.short": "video", "youtube.video": "video", "instagram.reel": "video", "instagram.story": "video",
     "facebook.reel": "video", "facebook.story": "video", "instagram.image": "image", "facebook.image": "image",
-    "linkedin.video": "video",
+    "linkedin.video": "video", "tiktok.video": "video",
 }
 
 

@@ -1,4 +1,4 @@
-"""autopilot: init, add, status, plan, run, report, doctor, youtube-auth."""
+"""autopilot: init, add, status, plan, run, report, doctor, youtube-auth, tiktok-auth."""
 from __future__ import annotations
 
 import argparse
@@ -35,6 +35,7 @@ limits:
   facebook.post: 1
   linkedin.post: 1
   linkedin.video: 1
+  tiktok.video: 1
 
 youtube:
   client_secret: secrets/youtube-oauth-client.json
@@ -55,6 +56,13 @@ facebook:
 # linkedin:
 #   author: urn:li:organization:12345   # or urn:li:person:<id>
 #   token: "${LINKEDIN_TOKEN}"
+
+# Optional: TikTok. Run `autopilot tiktok-auth` once, then add tiktok.video to an item's
+# actions: (or to default_actions:) to use it.
+# tiktok:
+#   client_key: "${TIKTOK_CLIENT_KEY}"
+#   client_secret: "${TIKTOK_CLIENT_SECRET}"
+#   privacy: SELF_ONLY         # until TikTok audits your app; then PUBLIC_TO_EVERYONE
 
 # Instagram and Facebook fetch media from a public https URL
 media:
@@ -193,6 +201,10 @@ def cmd_doctor(a):
             v = cfg.get(k)
             print(f"{'ok ' if v else 'MISSING'}  {k}")
             bad += not v
+    if cfg.get("tiktok"):
+        ok = cfg.path("tiktok.token", "secrets/tiktok-token.json").exists()
+        print(f"{'ok ' if ok else 'MISSING'}  tiktok token (run `autopilot tiktok-auth`)")
+        bad += not ok
     m = cfg.get("media", {}) or {}
     print(f"{'ok ' if (m.get('command') or (m.get('s3_bucket') and m.get('public_base'))) else 'MISSING'}  media hosting for Instagram/Facebook")
     return 1 if bad else 0
@@ -201,6 +213,11 @@ def cmd_doctor(a):
 def cmd_youtube_auth(a):
     from .platforms import youtube
     print("token saved:", youtube.auth(_cfg(a)))
+
+
+def cmd_tiktok_auth(a):
+    from .platforms import tiktok
+    print("token saved:", tiktok.auth(_cfg(a)))
 
 
 def cmd_research(a):
@@ -281,6 +298,7 @@ def main(argv=None):
     ro.set_defaults(fn=cmd_rotation)
     sub.add_parser("doctor").set_defaults(fn=cmd_doctor)
     sub.add_parser("youtube-auth").set_defaults(fn=cmd_youtube_auth)
+    sub.add_parser("tiktok-auth").set_defaults(fn=cmd_tiktok_auth)
     a = p.parse_args(argv)
     try:
         return a.fn(a) or 0
