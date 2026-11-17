@@ -8,7 +8,7 @@ item.yml:
   kind: short | video | image | post
   title: ...
   description: ...           # YouTube description / default caption
-  caption: ...               # Instagram + Facebook caption (falls back to description)
+  caption: ...               # Instagram, Facebook and LinkedIn caption (falls back to description)
   tags: [a, b]
   link: https://...          # for kind: post (a link card)
   priority: 10               # lower runs first; default 100
@@ -30,10 +30,11 @@ from .errors import ConfigError
 
 KINDS = ("short", "video", "image", "post")
 KNOWN_ACTIONS = ("youtube.short", "youtube.video", "instagram.reel", "instagram.story", "instagram.image",
-                 "facebook.reel", "facebook.story", "facebook.image", "facebook.post")
+                 "facebook.reel", "facebook.story", "facebook.image", "facebook.post", "linkedin.post", "linkedin.video")
 NEEDS = {  # which file each action needs
     "youtube.short": "video", "youtube.video": "video", "instagram.reel": "video", "instagram.story": "video",
     "facebook.reel": "video", "facebook.story": "video", "instagram.image": "image", "facebook.image": "image",
+    "linkedin.video": "video",
 }
 
 
@@ -77,8 +78,8 @@ def load_item(folder: Path, default_actions: dict) -> Item:
             raise ConfigError(f"{y}: action {a} needs files.{need}")
         if need and not files[need].exists():
             raise ConfigError(f"{y}: file not found: {files[need]}")
-        if a == "facebook.post" and not (d.get("link") or d.get("caption") or d.get("description")):
-            raise ConfigError(f"{y}: facebook.post needs a link, caption or description")
+        if a in ("facebook.post", "linkedin.post") and not (d.get("link") or d.get("caption") or d.get("description")):
+            raise ConfigError(f"{y}: {a} needs a link, caption or description")
     return Item(slug=folder.name, dir=folder, kind=kind, title=d.get("title", ""), description=d.get("description", ""),
                 caption=d.get("caption", ""), tags=list(d.get("tags") or []), link=d.get("link", ""),
                 priority=int(d.get("priority", 100)), files=files, actions=actions,

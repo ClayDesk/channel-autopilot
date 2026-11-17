@@ -19,6 +19,8 @@ DEFAULT_LIMITS = {
     "facebook.story": 1,
     "facebook.image": 1,
     "facebook.post": 1,
+    "linkedin.post": 1,
+    "linkedin.video": 1,
 }
 
 DEFAULT_ACTIONS = {
