@@ -72,7 +72,7 @@ The parts work alone or together:
 
 | Part | What it does | Needs |
 |---|---|---|
-| **Publisher** | Posts a queue of videos, images and links to YouTube (videos and Shorts), Instagram (Reels, stories, images) and Facebook (Reels, stories, images, posts). Respects daily limits, retries failures, records everything in a local ledger, emails a daily report. | Python 3.10+, your own platform credentials |
+| **Publisher** | Posts a queue of videos, images and links to YouTube (videos and Shorts), Instagram (Reels, stories, images), Facebook (Reels, stories, images, posts) and, optionally, LinkedIn (posts, videos). Respects daily limits, retries failures, records everything in a local ledger, emails a daily report. | Python 3.10+, your own platform credentials |
 | **Maker** | Turns a short `video.yml` (headlines, bullets, the lines to speak) into a narrated MP4 with captions and a thumbnail, using free open-source text-to-speech. | Python **3.10–3.12**, ffmpeg, espeak-ng, Chromium (via Playwright) |
 | **Research** | Google Ads Keyword Planner over its REST API: every related search with monthly volume, competition and advertiser bid; misspellings merged, navigational searches removed, ranked by what pays. | a Google Cloud service account, a Google Ads account, Google Ads API Basic access |
 | **Rotation** | Several channels, one channel a day: research → your writer command writes each video.yml → make → queue with go-live times → publish. | the above, plus a writer command (e.g. Claude Code headless) |
