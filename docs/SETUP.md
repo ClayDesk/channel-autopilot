@@ -15,6 +15,21 @@ You need an **Instagram business or creator account linked to a Facebook Page**,
 
 Posting to your own accounts works while the app is in development mode with you as admin. Posting for other people's accounts needs App Review.
 
+### LinkedIn (optional)
+
+1. [linkedin.com/developers](https://www.linkedin.com/developers/apps) → create an app linked to your Page.
+2. For a **Page**, request the Community Management API and get a token with `w_organization_social` as a Page admin; the author is `urn:li:organization:<page id>`. For **your own profile**, add *Share on LinkedIn* and get a token with `w_member_social` (plus `openid profile` to read your id from `/v2/userinfo`); the author is `urn:li:person:<id>`.
+3. Add to `config.yml` and put the token in `LINKEDIN_TOKEN`:
+
+```yaml
+linkedin:
+  author: urn:li:organization:12345
+  token: "${LINKEDIN_TOKEN}"
+```
+
+LinkedIn uploads videos directly, so no media hosting is needed for it. Member tokens last 60 days.
+LinkedIn retires each API version about a year after release: if every LinkedIn call starts failing, set `linkedin.version` to a current one from [LinkedIn's versioning page](https://learn.microsoft.com/en-us/linkedin/marketing/versioning) (format `YYYYMM`).
+
 ## 3. Media hosting (Instagram and Facebook fetch from a public URL)
 
 Either an S3 bucket reachable at a public URL (the `aws` CLI must be configured):

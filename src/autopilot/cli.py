@@ -33,6 +33,8 @@ limits:
   facebook.story: 1
   facebook.image: 1
   facebook.post: 1
+  linkedin.post: 1
+  linkedin.video: 1
 
 youtube:
   client_secret: secrets/youtube-oauth-client.json
@@ -47,6 +49,12 @@ instagram:
 facebook:
   page_id: "${FB_PAGE_ID}"
   token: "${META_TOKEN}"
+
+# Optional: a LinkedIn Page or your own profile. Add linkedin.post / linkedin.video to an item's
+# actions: (or to default_actions:) to use it.
+# linkedin:
+#   author: urn:li:organization:12345   # or urn:li:person:<id>
+#   token: "${LINKEDIN_TOKEN}"
 
 # Instagram and Facebook fetch media from a public https URL
 media:
@@ -180,6 +188,11 @@ def cmd_doctor(a):
         print(f"{'ok ' if v else 'MISSING'}  {k}")
         bad += not v
     print(f"{'ok ' if cfg.path('youtube.token', 'secrets/youtube-token.json').exists() else 'MISSING'}  youtube token (run `autopilot youtube-auth`)")
+    if cfg.get("linkedin"):
+        for k in ("linkedin.author", "linkedin.token"):
+            v = cfg.get(k)
+            print(f"{'ok ' if v else 'MISSING'}  {k}")
+            bad += not v
     m = cfg.get("media", {}) or {}
     print(f"{'ok ' if (m.get('command') or (m.get('s3_bucket') and m.get('public_base'))) else 'MISSING'}  media hosting for Instagram/Facebook")
     return 1 if bad else 0

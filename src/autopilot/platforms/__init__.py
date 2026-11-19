@@ -19,6 +19,8 @@ def get(action: str):
         from . import facebook as m
     elif platform == "youtube":
         from . import youtube as m
+    elif platform == "linkedin":
+        from . import linkedin as m
     else:
         raise KeyError(action)
     return getattr(m, kind)

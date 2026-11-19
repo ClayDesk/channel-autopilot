@@ -10,6 +10,7 @@ def cfg(tmp_path):
     data = {"name": "Test", "timezone": "UTC",
             "limits": {"youtube.short": 2, "instagram.reel": 1, "facebook.post": 1},
             "instagram": {"account_id": "IG1", "token": "tok"}, "facebook": {"page_id": "PG1", "token": "tok"},
+            "linkedin": {"author": "urn:li:organization:42", "token": "tok"},
             "media": {"command": "echo https://cdn.example.com/{name}"}}
     return Config(data, tmp_path)
 

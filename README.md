@@ -72,7 +72,7 @@ The parts work alone or together:
 
 | Part | What it does | Needs |
 |---|---|---|
-| **Publisher** | Posts a queue of videos, images and links to YouTube (videos and Shorts), Instagram (Reels, stories, images) and Facebook (Reels, stories, images, posts). Respects daily limits, retries failures, records everything in a local ledger, emails a daily report. | Python 3.10+, your own platform credentials |
+| **Publisher** | Posts a queue of videos, images and links to YouTube (videos and Shorts), Instagram (Reels, stories, images), Facebook (Reels, stories, images, posts) and, optionally, LinkedIn (posts, videos). Respects daily limits, retries failures, records everything in a local ledger, emails a daily report. | Python 3.10+, your own platform credentials |
 | **Maker** | Turns a short `video.yml` (headlines, bullets, the lines to speak) into a narrated MP4 with captions and a thumbnail, using free open-source text-to-speech. | Python **3.10–3.12**, ffmpeg, espeak-ng, Chromium (via Playwright) |
 | **Research** | Google Ads Keyword Planner over its REST API: every related search with monthly volume, competition and advertiser bid; misspellings merged, navigational searches removed, ranked by what pays. | a Google Cloud service account, a Google Ads account, Google Ads API Basic access |
 | **Rotation** | Several channels, one channel a day: research → your writer command writes each video.yml → make → queue with go-live times → publish. | the above, plus a writer command (e.g. Claude Code headless) |
@@ -141,7 +141,7 @@ tags: [focus, habits]
 files: {video: video.mp4, thumbnail: thumb.jpg}
 ```
 
-A `short` goes to YouTube Shorts, an Instagram Reel and story, and a Facebook Reel and story. A `video` goes to YouTube. An `image` goes to Instagram and Facebook. A `post` is a Facebook link post. Override with `actions:` per item or `default_actions:` in the config.
+A `short` goes to YouTube Shorts, an Instagram Reel and story, and a Facebook Reel and story. A `video` goes to YouTube. An `image` goes to Instagram and Facebook. A `post` is a Facebook link post. Override with `actions:` per item or `default_actions:` in the config. LinkedIn (`linkedin.post`, `linkedin.video`) is opt-in: add it to `actions:` or `default_actions:`.
 
 How a day works:
 
@@ -158,12 +158,13 @@ Run it every day with cron or launchd: see [docs/SETUP.md](docs/SETUP.md). A lap
 
 - **YouTube:** videos uploaded through the API from a Google Cloud project that has not passed YouTube's API audit can be locked to private. Check Google's current rules for your project before relying on public uploads. Refresh tokens for an OAuth app left in "Testing" expire after about a week, so publish the consent screen (or re-run `youtube-auth`).
 - **Instagram and Facebook:** posting to your own Page and Instagram business account works with a developer app in which you are an admin. Posting for other people's accounts needs Meta's App Review and business verification. Instagram allows 100 API-published posts per 24 hours per account.
+- **LinkedIn:** posts to a Page you administer (`w_organization_social`, needs LinkedIn's Community Management API access) or to your own profile (`w_member_social`). Member tokens expire after 60 days.
 - You are responsible for following each platform's terms and for what you publish. This project is not affiliated with Google, Meta or any platform.
 
 ## What it does not do
 
-It does not create accounts or get platform approvals for you, ship any keys, edit existing videos, or post to TikTok, X or
-LinkedIn (adding a platform means one module in `src/autopilot/platforms/`). Script writing is done by the writer command
+It does not create accounts or get platform approvals for you, ship any keys, edit existing videos, or post to TikTok or X
+(adding a platform means one module in `src/autopilot/platforms/`). Script writing is done by the writer command
 **you** configure (any AI tool or script); the project supplies the prompt template and the rules, not an AI account.
 
 ## Licences of what it uses
@@ -174,7 +175,7 @@ This project is MIT. It *calls* these, and does not bundle them: [Kokoro](https:
 
 **Contributors are welcome, first-timers included.** This project grows by people adding the pieces they need:
 
-- **A new platform** (TikTok, X, LinkedIn, Pinterest, Threads): one module in `src/autopilot/platforms/`, modelled on `youtube.py`.
+- **A new platform** (TikTok, X, Pinterest, Threads): one module in `src/autopilot/platforms/`, modelled on `youtube.py`.
 - **A new video style or voice** for the maker.
 - **Docs and translations:** a clearer setup step, a fix to a guide, a guide in your language.
 - **Bug reports:** what you ran, what you expected, what happened.
