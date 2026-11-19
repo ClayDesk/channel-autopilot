@@ -30,6 +30,25 @@ linkedin:
 LinkedIn uploads videos directly, so no media hosting is needed for it. Member tokens last 60 days.
 LinkedIn retires each API version about a year after release: if every LinkedIn call starts failing, set `linkedin.version` to a current one from [LinkedIn's versioning page](https://learn.microsoft.com/en-us/linkedin/marketing/versioning) (format `YYYYMM`).
 
+### TikTok (optional)
+
+1. [developers.tiktok.com](https://developers.tiktok.com/) → **Manage apps** → create an app, add **Login Kit** and **Content Posting API** (turn on *Direct Post*), and request the scopes `user.info.basic` and `video.publish`.
+2. In Login Kit, choose **Desktop** and register the redirect URI `http://localhost:*/callback/` (any port; `tiktok-auth` picks a free one). To use a fixed one instead, register it and set it in `tiktok.redirect_uri`.
+3. Put the app's client key and secret in `config.yml` (or the environment), then sign in once as the TikTok account:
+
+```yaml
+tiktok:
+  client_key: "${TIKTOK_CLIENT_KEY}"
+  client_secret: "${TIKTOK_CLIENT_SECRET}"
+  privacy: SELF_ONLY
+```
+
+```bash
+autopilot tiktok-auth      # opens the browser; saves secrets/tiktok-token.json
+```
+
+The token refreshes itself on each run (TikTok's access tokens last 2 hours, the refresh token 180 days). Until TikTok audits the app, posts can only be private: keep `privacy: SELF_ONLY`, then switch to `PUBLIC_TO_EVERYONE` after the audit. Videos are uploaded directly, so no media hosting is needed for TikTok.
+
 ## 3. Media hosting (Instagram and Facebook fetch from a public URL)
 
 Either an S3 bucket reachable at a public URL (the `aws` CLI must be configured):
